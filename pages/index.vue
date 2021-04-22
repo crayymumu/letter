@@ -5,7 +5,11 @@
       <div class="letter">
         <div class="body">
           <span class="close" @click.stop="closeCard()">x</span>
-          <div class="message">fin.</div>
+          <div class="message">
+            {{ content[currentIndex] }}
+          </div>
+          <div class="pre" v-show="currentIndex > 0" @click="handlePrePage">< Pre</div>
+          <div class="next" v-show="currentIndex < content.length - 1" @click="handleNextPage">Next ></div>
         </div>
       </div>
       <div class="shadow"></div>
@@ -16,18 +20,32 @@
 <script>
 import { gsap } from 'gsap'
 import { CSSRulePlugin } from 'gsap/dist/CSSRulePlugin'
+import flipsound from '~/assets/flipsound.mp3'
 
 export default {
   data() {
     return {
       t1: null,
-      t2: null
+      t2: null,
+      content: [
+        'Maybe One Day!',
+        'Maybe Two Day!',
+        'Maybe Three Day!'
+      ],
+      currentIndex: 0,
+      audioElm: '',
     }
   },
   created() {
     gsap.registerPlugin(CSSRulePlugin)
   },
+  watch: {
+    currentIndex(val) {
+      console.log(val)
+    }
+  },
   mounted() {
+    this.initAudioElm()
     this.t1 = gsap.timeline({ paused: true });
     this.t2 = gsap.timeline({ paused: true });
     let flap = CSSRulePlugin.getRule(".envelope:before");
@@ -66,22 +84,39 @@ export default {
 
     this.t2.to('.shadow', {
       delay: 1.4,
-      // width: 450,
+      // width: 200,
       // boxShadow: "-75px 150px 10px 5px #eeeef3",
       ease: "back.out(.2)",
-      duration: .7
+      duration: .7,
+      bottom: -180
     });
   },
   methods: {
     openCard(e) {
       this.t1.play();
       this.t2.play();
+      this.audioElm.play()
     },
-
     closeCard(e) {
       this.t1.reverse();
       this.t2.reverse();
-    }
+    },
+    initAudioElm() {
+      let audio = new Audio();
+      audio.autobuffer = true; // 自动缓存
+      audio.preload = 'metadata';
+      audio.src = flipsound
+      audio.load();
+      this.audioElm = audio;
+    },
+    handlePrePage() {
+      this.audioElm.play()
+      this.currentIndex > 0 ? this.currentIndex = this.currentIndex - 1 : null
+    },
+    handleNextPage() {
+      this.audioElm.play()
+      this.currentIndex < this.content.length - 1 ? this.currentIndex = this.currentIndex + 1 : null
+    },
   }
 }
 </script>
@@ -143,7 +178,6 @@ export default {
     position: relative;
     width: 100%;
     height: 100%;
-    @include center-by-all-means;
     color: var(--base);
 
     .close {
@@ -162,8 +196,19 @@ export default {
     .message {
       font-size: 40px;
       font-weight: 900;
-      text-align: center;
       font-family: 'Great Vibes', cursive;
+    }
+
+    .pre {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+    }
+
+    .next {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
     }
   }
 }
